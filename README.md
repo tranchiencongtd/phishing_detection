@@ -1,6 +1,6 @@
 # Phishing Detection (Local DB - Realtime)
 
-Giải pháp gồm 2 phần:
+Gồm 2 phần:
 - Backend Node.js đọc MongoDB (localhost:27017, db `phishing_detection`, collection `data` cột `URL`).
 - Extension trình duyệt (MV3) kiểm tra **realtime** mỗi lần người dùng truy cập URL bằng cách gọi API `/check`, nếu kết quả `phishing: true` thì chặn và hiển thị trang cảnh báo.
 
@@ -12,7 +12,6 @@ Giải pháp gồm 2 phần:
 
 ```powershell
 # đi đến thư mục backend
-cd "c:\Users\admin\OneDrive\Documents\thạc sỹ\HKIII\an_toan_bao_mat_thong_tin\phishing_detection\backend"
 
 # cài dependencies
 npm install
@@ -38,7 +37,6 @@ Biến môi trường:
 1. Mở trình duyệt -> `chrome://extensions` (hoặc `edge://extensions`).
 2. Bật Developer mode.
 3. Chọn "Load unpacked" và trỏ tới thư mục:
-   `c:\Users\admin\OneDrive\Documents\thạc sỹ\HKIII\an_toan_bao_mat_thong_tin\phishing_detection\extension`
 4. Backend URL mặc định là `http://localhost:4000`. Có thể vào Options của extension để đổi.
 
 ## Cách hoạt động (Realtime)
@@ -69,13 +67,6 @@ Chức năng:
    - `phishing`: `phishing_db OR phishing_ml`.
    - `source`: "db" | "ml" | "none".
 
-### Cài đặt (PowerShell)
-```powershell
-cd "c:\Users\admin\OneDrive\Documents\thạc sỹ\HKIII\an_toan_bao_mat_thong_tin\phishing_detection\python_backend"
-python -m venv .venv
-./.venv/Scripts/Activate.ps1
-pip install -r requirements.txt
-```
 
 ### Chạy server
 ```powershell
@@ -88,31 +79,3 @@ Server: http://localhost:5000
 curl "http://localhost:5000/health"
 curl "http://localhost:5000/check?url=https://www.southbankmosaics.com"
 ```
-
-### Train mô hình (đơn giản)
-```powershell
-cd python_backend
-./.venv/Scripts/Activate.ps1
-python -m app.train
-```
-Sinh file model: `python_backend/app/model.joblib`.
-
-### Tích hợp với extension
-- Có thể đổi backend URL của extension sang FastAPI (ví dụ http://localhost:5000) nếu muốn dùng quyết định ML.
-- Endpoint `/check` của Python trả cùng trường `phishing` nên extension không cần đổi logic.
-
-### Ghi chú kỹ thuật
-- Nếu dataset ít, fallback heuristic sẽ quyết định dựa trên độ dài, số ký tự đặc biệt.
-- Có thể mở rộng thêm đặc trưng: entropy, suspicious TLD, từ khoá thương hiệu.
-- Nên thêm scheduler train lại định kỳ khi dữ liệu tăng.
-
----
-### So sánh chế độ cũ (cache /list) vs realtime /check
-| Tiêu chí | Cache danh sách | Realtime /check |
-|----------|-----------------|-----------------|
-| Độ trễ cập nhật DB | Chậm (tối đa = chu kỳ refresh) | Ngay lập tức |
-| Số request backend | Ít (định kỳ) | Nhiều (mỗi điều hướng) |
-| Phụ thuộc dynamic rules | Có | Không |
-| Độ chính xác tức thời | Trung bình | Cao |
-
-Nếu backend chịu tải tốt và danh sách thay đổi thường xuyên → dùng realtime. Nếu bạn muốn giảm truy vấn, có thể thêm cache ngắn hạn (memory 30–60s) trong `background.js`.
