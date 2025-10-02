@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "phishing-detection",
   "version": "1.0.0",
-  "description": "Chặn truy cập các URL phishing dựa trên database nội bộ.",
+  "description": "Chặn truy cập các URL phishing.",
   "permissions": [
     "storage",
     "tabs",

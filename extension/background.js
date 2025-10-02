@@ -1,7 +1,6 @@
-// Background service worker: realtime phishing check via backend /check (webNavigation based)
 const DEFAULT_BACKEND = 'http://localhost:5000';
-const allowOverrides = new Map(); // host -> expiry timestamp
-const resultCache = new Map(); // url -> { phishing:boolean, exp:number }
+const allowOverrides = new Map(); 
+const resultCache = new Map(); 
 const CACHE_TTL_MS = 30 * 1000; // 30s per exact URL
 
 function normalizeForHost(input) {
@@ -47,7 +46,7 @@ function pruneCache() {
 
 chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   const { tabId, url, frameId } = details;
-  if (frameId !== 0) return; // only main frame
+  if (frameId !== 0) return; 
   if (tabId === -1) return;
   const host = normalizeForHost(url);
   pruneAllow();
@@ -59,7 +58,6 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   }
 });
 
-// Message handlers
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg?.type === 'allowHost' && msg.host) {
     const ttlMs = typeof msg.ttlMs === 'number' ? msg.ttlMs : 5 * 60 * 1000;

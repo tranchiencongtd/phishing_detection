@@ -50,7 +50,6 @@ def normalize(url: str) -> str:
     except Exception:
         return url.lower()
 
-## Startup/shutdown handled by lifespan context above
 
 @app.get("/health")
 def health():
@@ -65,7 +64,7 @@ def check(url: str = Query(..., description="URL cần kiểm tra")):
 
     col = mongo_client[DB_NAME][COLLECTION]
 
-    # DB match: entries stored maybe with http(s):// prefix
+    # Khớp DB: các mục được lưu có thể có tiền tố http(s)://
     patterns = [
         {"URL": {"$regex": f"^https?://{norm.rstrip('/')}/?$", "$options": "i"}},
         {"URL": {"$regex": f"^{norm.rstrip('/')}$", "$options": "i"}},
@@ -74,12 +73,12 @@ def check(url: str = Query(..., description="URL cần kiểm tra")):
     phishing_db = db_doc is not None
     label = db_doc.get('label') if db_doc and 'label' in db_doc else None
 
-    # Interpretation: label = 1 => legit (not phishing), label = 0 => phishing
+    # Giải thích: label = 1 => hợp pháp (không phải phishing), label = 0 => phishing
     if label is not None:
         phishing = (label == 0)
         source = "db-label"
     else:
-        phishing = phishing_db  # fallback to presence-based
+        phishing = phishing_db  
         source = "db" if phishing_db else "none"
 
     elapsed_ms = (time.time() - began) * 1000.0
@@ -95,7 +94,6 @@ def check(url: str = Query(..., description="URL cần kiểm tra")):
     )
 
 if __name__ == "__main__":
-    # Allow running:  py main.py  (from inside the app folder)
     import uvicorn
     port = int(os.getenv("PORT", "5000"))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
