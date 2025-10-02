@@ -8,20 +8,6 @@ Gồm 2 phần:
 - Node.js 18+
 - MongoDB đang chạy tại `mongodb://localhost:27017`
 
-## Cài đặt và chạy Backend
-
-```powershell
-# đi đến thư mục backend
-
-# cài dependencies
-npm install
-
-# (tuỳ chọn) seed dữ liệu mẫu
-npm run seed
-
-# chạy server
-npm start
-```
 
 Mặc định backend chạy ở http://localhost:4000 với các endpoint:
 - GET `/health`
