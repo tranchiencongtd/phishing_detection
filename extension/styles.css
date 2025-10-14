@@ -2,9 +2,33 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
 .container { max-width: 720px; margin: 0 16px; padding: 24px; background: #ffffff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,.12); text-align:center; }
 .icon { font-size: 48px; }
 h1 { margin: 8px 0 12px; }
-.url { font-family: Consolas, monospace; color: #ffcc00; word-break: break-all; }
+.url { font-family: Consolas, monospace; color: #e55353; word-break: break-all; font-size: 14px; margin: 16px 0; }
+
+.detection-info { 
+  background: #f8f9fa; 
+  border-radius: 8px; 
+  padding: 16px; 
+  margin: 20px 0; 
+  text-align: left; 
+  border-left: 4px solid #e55353; 
+}
+.detection-info h3 { 
+  margin: 0 0 12px 0; 
+  font-size: 16px; 
+  color: #e55353; 
+}
+.info-item { 
+  margin: 8px 0; 
+  font-size: 14px; 
+}
+.info-item strong { 
+  color: #333; 
+}
+
 .actions { margin-top: 24px; display:flex; gap:12px; justify-content:center; }
-button { padding: 10px 16px; border-radius: 8px; border: 0; cursor: pointer; }
+button { padding: 12px 20px; border-radius: 8px; border: 0; cursor: pointer; font-weight: 500; }
 button#goBack { background: #2c7be5; color: #fff; }
+button#goBack:hover { background: #1e5bb5; }
 button#proceed { background: #e55353; color: #fff; }
+button#proceed:hover { background: #d43f3f; }
 button:focus { outline: 2px solid #222; outline-offset: 2px; }

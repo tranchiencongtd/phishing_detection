@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Phishing Detection Status</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      width: 300px;
+      min-height: 200px;
+      background: #ffffff;
+      color: #333;
+    }
+    
+    .popup-container {
+      padding: 16px;
+    }
+    
+    .status-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+    
+    .status-safe {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .status-danger {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .status-warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+    
+    .status-loading {
+      background: #e2e3e5;
+      color: #383d41;
+      border: 1px solid #d6d8db;
+    }
+    
+    .status-icon {
+      font-size: 24px;
+    }
+    
+    .status-text {
+      flex: 1;
+    }
+    
+    .url-info {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      word-break: break-all;
+      color: #666;
+    }
+    
+    .detection-details {
+      margin-top: 16px;
+    }
+    
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      margin: 8px 0;
+      font-size: 14px;
+    }
+    
+    .detail-label {
+      font-weight: 500;
+      color: #666;
+    }
+    
+    .detail-value {
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .confidence-bar {
+      width: 100%;
+      height: 20px;
+      background: #e9ecef;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+    
+    .confidence-fill {
+      height: 100%;
+      border-radius: 10px;
+      transition: width 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+    }
+    
+    .confidence-safe {
+      background: linear-gradient(90deg, #28a745, #20c997);
+    }
+    
+    .confidence-danger {
+      background: linear-gradient(90deg, #dc3545, #e55353);
+    }
+    
+    .actions {
+      margin-top: 16px;
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+    }
+    
+    .btn-primary {
+      background: #007bff;
+      color: white;
+    }
+    
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+    
+    .btn:hover {
+      opacity: 0.9;
+    }
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #666;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="popup-container">
+    <div id="status" class="status-header status-loading">
+      <div class="status-icon">
+        <div class="loading-spinner"></div>
+      </div>
+      <div class="status-text">Đang kiểm tra...</div>
+    </div>
+    
+    <div class="url-info" id="urlInfo">
+      Đang tải URL...
+    </div>
+    
+    <div id="detectionDetails" class="detection-details" style="display: none;">
+      <div class="detail-item">
+        <span class="detail-label">Nguồn phát hiện:</span>
+        <span class="detail-value" id="source">-</span>
+      </div>
+      
+      <div id="confidenceSection" style="display: none;">
+        <div class="detail-item">
+          <span class="detail-label" id="confidenceLabel">Mức độ tin cậy:</span>
+          <span class="detail-value" id="confidenceText">-</span>
+        </div>
+        <div class="confidence-bar">
+          <div id="confidenceFill" class="confidence-fill" style="width: 0%;">
+            <span id="confidencePercent">0%</span>
+          </div>
+        </div>
+      </div>
+      
+      <div id="typeSection" style="display: none;">
+        <div class="detail-item">
+          <span class="detail-label">Loại:</span>
+          <span class="detail-value" id="type">-</span>
+        </div>
+      </div>
+      
+      <div class="detail-item">
+        <span class="detail-label">Thời gian kiểm tra:</span>
+        <span class="detail-value" id="elapsed">-</span>
+      </div>
+    </div>
+    
+    <div class="actions">
+      <button id="refresh" class="btn btn-primary">Kiểm tra lại</button>
+      <a href="options.html" target="_blank" class="btn btn-secondary">Cài đặt</a>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

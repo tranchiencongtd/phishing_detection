@@ -10,8 +10,22 @@
   <div class="container">
     <div class="icon">⚠️</div>
     <h1>Đã chặn truy cập</h1>
-    <p>Trang bạn sắp truy cập có thể là phishing theo cơ sở dữ liệu nội bộ.</p>
+    <p id="mainMessage">Trang bạn sắp truy cập có thể là phishing.</p>
     <p class="url" id="url"></p>
+    
+    <div class="detection-info" id="detectionInfo" style="display: none;">
+      <h3>Thông tin phát hiện:</h3>
+      <div class="info-item">
+        <strong>Nguồn phát hiện:</strong> <span id="source"></span>
+      </div>
+      <div class="info-item" id="confidenceItem" style="display: none;">
+        <strong>Khả năng phishing:</strong> <span id="confidence"></span>% nguy hiểm
+      </div>
+      <div class="info-item" id="typeItem" style="display: none;">
+        <strong>Loại:</strong> <span id="type"></span>
+      </div>
+    </div>
+    
     <div class="actions">
       <button id="goBack">Quay lại</button>
       <button id="proceed" class="danger">Tiếp tục tạm thời</button>

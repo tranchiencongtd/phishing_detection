@@ -1,0 +1,60 @@
+### Health Check
+GET http://localhost:5000/health
+
+###
+
+### Check Legitimate URL - Google
+GET http://localhost:5000/check?url=https://www.google.com
+
+###
+
+### Check Phishing URL
+GET http://localhost:5000/check?url=http://phishing-example.com
+
+###
+
+### Check Unknown URL (will use model)
+GET http://localhost:5000/check?url=https://unknown-site-12345.com
+
+###
+
+### Check URL with IP Address
+GET http://localhost:5000/check?url=http://192.168.1.100/login
+
+###
+
+### Check Short URL
+GET http://localhost:5000/check?url=http://bit.ly/abc123
+
+###
+
+### Check URL with Many Subdomains
+GET http://localhost:5000/check?url=http://secure.login.account.verify.suspicious-site.com
+
+###
+
+### Check Facebook
+GET http://localhost:5000/check?url=https://www.facebook.com
+
+###
+
+### Check YouTube
+GET http://localhost:5000/check?url=https://www.youtube.com
+
+###
+
+### Check Suspicious PayPal-like URL
+GET http://localhost:5000/check?url=http://paypal-secure-login.tk
+
+###
+
+### Check Phishing in database
+GET http://localhost:5000/check?url=http://www.it-cr.ru/content/update/account-update/webapps/03be4f5bdbccff5c9bced28baac36c46/
+
+###
+
+### Check Phishing 
+GET http://localhost:5000/check?url=https://vnexpress.net/
+
+
+###

@@ -365,3 +365,6 @@ class SafeFeatureExtraction:
                 return -1
         except:
             return -1
+    
+    def getFeaturesList(self):
+        return self.features

@@ -1,67 +1,149 @@
-# Phishing Detection (Local DB - Realtime)
+# Phishing Detection System
 
-Gồm 2 phần:
-- Backend Node.js đọc MongoDB (localhost:27017, db `phishing_detection`, collection `data` cột `URL`).
-- Extension trình duyệt (MV3) kiểm tra **realtime** mỗi lần người dùng truy cập URL bằng cách gọi API `/check`, nếu kết quả `phishing: true` thì chặn và hiển thị trang cảnh báo.
+Hệ thống phát hiện phishing real-time sử dụng Machine Learning và database URL phishing.
 
-## Yêu cầu
-- Node.js 18+
+## Cấu trúc project
+```
+phishing_detection/
+├── backend/app/          # FastAPI backend với ML model
+├── extension/           # Chrome Extension (Manifest V3)
+└── README.md
+```
+
+## Thành phần chính
+- **Backend FastAPI**: ML model + MongoDB lookup cho phát hiện phishing
+- **Chrome Extension**: Kiểm tra real-time khi người dùng truy cập URL
+- **MongoDB Database**: Lưu trữ danh sách URL phishing đã biết
+
+## Yêu cầu hệ thống
+- Python 3.8+
 - MongoDB đang chạy tại `mongodb://localhost:27017`
+- Chrome/Edge browser để cài extension
 
+## Backend API
+Chạy tại http://localhost:8000 (mặc định) với các endpoint:
+- GET `/health` -> Kiểm tra trạng thái server
+- GET `/check?url=...` -> Kiểm tra URL phishing
 
-Mặc định backend chạy ở http://localhost:4000 với các endpoint:
-- GET `/health`
-- GET `/list` -> trả về `{ count, urls: string[] }`
-- GET `/check?url=...` -> `{ url, normalized, phishing: boolean }`
-
-Biến môi trường:
-- `MONGO_URI` (mặc định `mongodb://localhost:27017`)
-- `DB_NAME` (mặc định `phishing_detection`)
-- `COLLECTION` (mặc định `data`)
-
-## Cài đặt Extension (Chrome/Edge)
-1. Mở trình duyệt -> `chrome://extensions` (hoặc `edge://extensions`).
-2. Bật Developer mode.
-3. Chọn "Load unpacked" và trỏ tới thư mục:
-4. Backend URL mặc định là `http://localhost:4000`. Có thể vào Options của extension để đổi.
-
-## Cách hoạt động (Realtime)
-- Mỗi request điều hướng (main_frame) trình duyệt → extension chặn tạm và gửi HTTP `GET /check?url=<đầy đủ>` đến backend.
-- Backend chuẩn hoá và kiểm tra URL có tồn tại trong collection (theo pattern chuẩn) → trả về `phishing: true/false`.
-- Nếu `true` → extension redirect trang sang `blocked.html?url=<original>`.
-- Người dùng có thể chọn “Tiếp tục tạm thời” (allow host 5 phút) → các lần truy cập kế tiếp host đó không bị gọi `/check` (giảm độ trễ).
-
-## Ghi chú
-- Cột trong MongoDB nên thống nhất tên `URL` và lưu dạng đầy đủ: `https://domain/path`.
-- Backend chuẩn hoá để so khớp bỏ protocol nhưng pattern tìm kiếm vẫn hỗ trợ cả http/https và dấu `/` cuối.
-- Nếu muốn mở rộng chặn toàn bộ sub-path của một domain chỉ cần thay regex ở backend hoặc chuyển sang lưu domain gốc.
-
-## Bảo mật & Quyền riêng tư
-- Mỗi lần điều hướng chỉ gửi đúng URL đích tới backend nội bộ để kiểm tra (không gửi lịch sử khác).
-- Không ghi log ngoài trừ khi bạn bật pino logger backend.
-- Không lưu trữ danh sách cục bộ nhiều → dữ liệu trung tâm cập nhật lập tức.
-
-## Python Backend (FastAPI + ML) bổ sung
-
-Thư mục: `python_backend/`
-
-Chức năng:
-- Endpoint `GET /health`
-- Endpoint `GET /check?url=...` trả về:
-   - `phishing_db`: true nếu URL tồn tại trong Mongo (collection `data`, field `URL`).
-   - `phishing_ml`: kết quả mô hình ML (RandomForest hoặc heuristic fallback nếu chưa train).
-   - `phishing`: `phishing_db OR phishing_ml`.
-   - `source`: "db" | "ml" | "none".
-
-
-### Chạy server
-```powershell
-uvicorn app.main:app --reload --port 5000
+### Response format
+```json
+{
+  "url": "https://example.com",
+  "result": "safe",           // "safe" | "phishing"
+  "source": "db",             // "db" | "ml" | "cache"
+  "type": "legitimate",       // "legitimate" | "phishing"
+  "confidence": 0.95,         // 0.0 - 1.0
+  "elapsed_ms": 45.2
+}
 ```
-Server: http://localhost:5000
 
-### Gọi thử
+## Cài đặt & Chạy
+
+### 1. Setup Backend
 ```powershell
-curl "http://localhost:5000/health"
-curl "http://localhost:5000/check?url=https://www.southbankmosaics.com"
+cd backend
+pip install -r app/requirements.txt
+uvicorn app.main:app --reload --port 8000
 ```
+
+### 2. Setup MongoDB
+- Cài đặt MongoDB Community Server
+- Tạo database `phishing_detection` với collection `data`
+- Import dữ liệu URL phishing vào collection
+
+### 3. Cài đặt Extension (Chrome/Edge)
+1. Mở `chrome://extensions` (hoặc `edge://extensions`)
+2. Bật "Developer mode" 
+3. Chọn "Load unpacked" và trỏ tới thư mục `extension/`
+4. Backend URL mặc định là `http://localhost:8000` (có thể đổi trong Options)
+
+## Tính năng Extension
+
+### Phát hiện Real-time
+- Kiểm tra tự động mỗi khi truy cập URL mới
+- Hiển thị cảnh báo ngay lập tức nếu phát hiện phishing
+- Cache kết quả để giảm độ trễ
+
+### Popup Interface 
+- Click vào icon extension để xem trạng thái trang hiện tại
+- Hiển thị độ tin cậy và nguồn kiểm tra (Database/ML)
+- Giao diện trực quan với màu sắc phân biệt
+
+### Cách hoạt động
+1. **Passive Detection**: Tự động kiểm tra khi người dùng điều hướng đến URL mới
+2. **Active Check**: Người dùng click popup để kiểm tra thủ công 
+3. **Manual Override**: Cho phép bỏ qua cảnh báo tạm thời (5 phút)
+
+### Workflow
+- Extension → gửi `GET /check?url=...` → Backend
+- Backend → kiểm tra Database + ML model → trả về kết quả
+- Nếu phishing → hiển thị trang cảnh báo `blocked.html`
+- Popup hiển thị trạng thái với confidence score
+
+## Machine Learning Backend
+
+### Tính năng ML
+- **GradientBoostingClassifier**: Mô hình ML chính để phân loại URL
+- **Feature Extraction**: Trích xuất 20+ features từ URL (length, special chars, domain age, etc.)
+- **Database Lookup**: Kiểm tra URL trong database phishing đã biết
+- **Confidence Score**: Độ tin cậy dự đoán từ 0.0 đến 1.0
+
+### Quy trình phân tích
+1. Kiểm tra URL trong MongoDB (nếu có → trả về kết quả DB)
+2. Nếu không có → trích xuất features và dùng ML model
+3. Trả về kết quả với confidence score và elapsed time
+
+## Testing
+
+### Test Backend API
+```powershell
+# Kiểm tra health
+curl "http://localhost:8000/health"
+
+# Test URL an toàn
+curl "http://localhost:8000/check?url=https://google.com"
+
+# Test URL phishing (nếu có trong DB)
+curl "http://localhost:8000/check?url=https://phishing-example.com"
+```
+
+### Test Extension
+1. Load extension trong Chrome
+2. Truy cập các URL test
+3. Kiểm tra popup hiển thị đúng thông tin
+4. Test trang cảnh báo khi phát hiện phishing
+
+## Cấu hình MongoDB
+
+### Database structure
+```javascript
+// Database: phishing_detection
+// Collection: data
+{
+  "_id": ObjectId(...),
+  "URL": "https://malicious-site.com/login",
+  "label": "phishing"  // hoặc "legitimate"
+}
+```
+
+### Import dữ liệu mẫu
+```powershell
+# Import từ CSV
+mongoimport --db phishing_detection --collection data --type csv --headerline --file dataset.csv
+```
+
+## Troubleshooting
+
+### Backend không start
+- Kiểm tra MongoDB đã chạy: `mongo --eval "db.runCommand('ping')"`
+- Kiểm tra port 8000 đã được sử dụng: `netstat -an | findstr :8000`
+- Cài đặt dependencies: `pip install -r requirements.txt`
+
+### Extension không hoạt động
+- Kiểm tra Developer Console trong `chrome://extensions`
+- Kiểm tra backend URL trong Options của extension
+- Xem Network tab trong DevTools để debug API calls
+
+### ML Model lỗi
+- Scikit-learn version compatibility: `pip install scikit-learn==1.0.1`
+- Retrain model nếu cần với version hiện tại
