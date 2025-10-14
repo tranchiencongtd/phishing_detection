@@ -9,6 +9,7 @@ from pymongo import MongoClient
 from safe_feature_extraction import SafeFeatureExtraction
 import numpy as np
 import warnings
+from dotenv import load_dotenv
 
 
 # Kiểm tra xem có đang chạy trên Railway không
@@ -17,20 +18,16 @@ IS_PRODUCTION = os.getenv("RAILWAY_ENVIRONMENT_NAME") is not None or os.getenv("
 if not IS_PRODUCTION:
     # Chỉ load .env cho local development
     try:
-        from dotenv import load_dotenv
         load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
-        print("🔧 Development mode: Loading .env file")
+        print("Development mode: Loading .env file")
     except ImportError:
         pass
 else:
     print("Production mode: Using Railway environment variables")
 
 
-# MongoDB config
-MONGO_URI = os.getenv("MONGO_URI")
-if not MONGO_URI:
-    MONGO_URI = "mongodb://localhost:27017"
-    print(" No MONGO_URI found, using localhost")
+# MongoDB config - sử dụng Atlas cho production
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 DB_NAME = os.getenv("DB_NAME", "detection_phishing") 
 DATA_URLS_COLLECTION = os.getenv("DATA_URLS_COLLECTION", "data_urls")
 PORT = int(os.getenv("PORT", 8000))
@@ -44,6 +41,7 @@ async def lifespan(app: FastAPI):
     global mongo_client, ml_model
     # Kết nối MongoDB
     try:
+        print(MONGO_URI)
         mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=3000)
         mongo_client.admin.command('ping')
         print("MongoDB connected successfully")
