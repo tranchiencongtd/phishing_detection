@@ -234,16 +234,16 @@ Thumbs.db
 *~
 
 # Machine Learning / Data Science
-*.pkl
-*.pickle
-*.joblib
-*.h5
-*.hdf5
-*.model
-models/
-checkpoints/
-*.weights
-*.pb
+# *.pkl
+# *.pickle
+# *.joblib
+# *.h5
+# *.hdf5
+# *.model
+# models/
+# checkpoints/
+# *.weights
+# *.pb
 
 # Large dataset files (uncomment if needed)
 # *.csv
