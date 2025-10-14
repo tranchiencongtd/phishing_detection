@@ -1,4 +1,4 @@
-const DEFAULT_BACKEND = 'http://localhost:5000';
+const DEFAULT_BACKEND = 'http://localhost:8000';
 
 async function loadSettings() {
   const { backendUrl } = await chrome.storage.local.get({ backendUrl: DEFAULT_BACKEND });

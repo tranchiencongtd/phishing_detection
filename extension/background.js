@@ -1,4 +1,4 @@
-const DEFAULT_BACKEND = 'http://localhost:5000';
+const DEFAULT_BACKEND = 'http://localhost:8000';
 const allowOverrides = new Map(); 
 const resultCache = new Map(); 
 const CACHE_TTL_MS = 30 * 1000; // 30s per exact URL
