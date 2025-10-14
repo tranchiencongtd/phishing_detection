@@ -26,8 +26,11 @@ else:
     print("Production mode: Using Railway environment variables")
 
 
-# MongoDB config - sử dụng Atlas cho production
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+# MongoDB config
+MONGO_URI = os.getenv("MONGO_URI")
+if not MONGO_URI:
+    MONGO_URI = "mongodb://localhost:27017"
+    print(" No MONGO_URI found, using localhost")
 DB_NAME = os.getenv("DB_NAME", "detection_phishing") 
 DATA_URLS_COLLECTION = os.getenv("DATA_URLS_COLLECTION", "data_urls")
 PORT = int(os.getenv("PORT", 8000))
