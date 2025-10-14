@@ -9,11 +9,17 @@ from pymongo import MongoClient
 from safe_feature_extraction import SafeFeatureExtraction
 import numpy as np
 import warnings
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 
+# MongoDB config - sử dụng Atlas cho production
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-DB_NAME = os.getenv("DB_NAME", "detection_phishing")
-DATA_URLS_COLLECTION = "data_urls"
+DB_NAME = os.getenv("DB_NAME", "detection_phishing") 
+DATA_URLS_COLLECTION = os.getenv("DATA_URLS_COLLECTION", "data_urls")
+PORT = int(os.getenv("PORT", 8000))
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "model", "model_5.pkl")
 
 mongo_client: Optional[MongoClient] = None
@@ -23,8 +29,13 @@ ml_model = None
 async def lifespan(app: FastAPI):
     global mongo_client, ml_model
     # Kết nối MongoDB
-    mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=3000)
-    mongo_client.admin.command('ping')
+    try:
+        mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=3000)
+        mongo_client.admin.command('ping')
+        print("MongoDB connected successfully")
+    except Exception as e:
+        print(f"MongoDB connection failed: {e}")
+        mongo_client = None
     
     # Load ML model
     try:
@@ -44,6 +55,16 @@ async def lifespan(app: FastAPI):
             mongo_client.close()
 
 app = FastAPI(title="Phishing Detection Python API", version="1.0.0", lifespan=lifespan)
+
+# CORS để extension có thể gọi API
+from fastapi.middleware.cors import CORSMiddleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Trong production nên giới hạn origins cụ thể
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 
 class CheckResponse(BaseModel):
     url: str
