@@ -41,7 +41,6 @@ async def lifespan(app: FastAPI):
     global mongo_client, ml_model
     # Kết nối MongoDB
     try:
-        print(MONGO_URI)
         mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=3000)
         mongo_client.admin.command('ping')
         print("MongoDB connected successfully")
