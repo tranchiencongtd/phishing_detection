@@ -9,15 +9,15 @@ from pymongo import MongoClient
 from safe_feature_extraction import SafeFeatureExtraction
 import numpy as np
 import warnings
-from dotenv import load_dotenv
 
 
 # Kiểm tra xem có đang chạy trên Railway không
-IS_PRODUCTION = os.getenv("RAILWAY_ENVIRONMENT") is not None or os.getenv("MONGO_URI") is not None
+IS_PRODUCTION = os.getenv("RAILWAY_ENVIRONMENT_NAME") is not None or os.getenv("MONGO_URI") is not None
 
 if not IS_PRODUCTION:
     # Chỉ load .env cho local development
     try:
+        from dotenv import load_dotenv
         load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
         print("🔧 Development mode: Loading .env file")
     except ImportError:
