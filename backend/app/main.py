@@ -8,8 +8,9 @@ from pymongo import MongoClient
 from urllib.parse import urlparse
 
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-DB_NAME = os.getenv("DB_NAME", "phishing_detection")
-COLLECTION = os.getenv("COLLECTION", "data")
+DB_NAME = os.getenv("DB_NAME", "detection_phishing")
+BLACKLIST_COLLECTION = "blacklist"
+WHITELIST_COLLECTION = "whitelist"
 
 mongo_client: Optional[MongoClient] = None
 
@@ -29,26 +30,53 @@ app = FastAPI(title="Phishing Detection Python API", version="1.0.0", lifespan=l
 class CheckResponse(BaseModel):
     url: str
     normalized: str
-    phishing_db: bool
-    label: int | None
-    phishing: bool
+    in_blacklist: bool
+    in_whitelist: bool
+    result: str  # "phishing", "safe", "unknown"
     source: str
     elapsed_ms: float
 
-def normalize(url: str) -> str:
+def extract_domain(url: str) -> str:
+    """Extract domain từ URL"""
     url = url.strip()
     if not url:
         return url
+    
+    # Thêm protocol nếu chưa có để parse được
     if not url.lower().startswith(("http://", "https://")):
         url = "http://" + url
+    
     try:
         parsed = urlparse(url)
-        host = parsed.hostname.lower() if parsed.hostname else ""
-        path = (parsed.path or "/").rstrip("/")
-        query = ("?" + parsed.query) if parsed.query else ""
-        return f"{host}{path if path else ''}{query}"
+        domain = parsed.hostname.lower() if parsed.hostname else ""
+        
+        # Giữ nguyên port nếu có
+        if parsed.port:
+            domain = f"{domain}:{parsed.port}"
+            
+        return domain
     except Exception:
         return url.lower()
+
+def extract_domain_from_db_url(db_url: str) -> str:
+    """Extract domain từ URL trong database"""
+    db_url = db_url.strip()
+    if not db_url:
+        return db_url
+        
+    # Nếu đã có protocol, extract domain
+    if db_url.lower().startswith(("http://", "https://")):
+        try:
+            parsed = urlparse(db_url)
+            domain = parsed.hostname.lower() if parsed.hostname else ""
+            if parsed.port:
+                domain = f"{domain}:{parsed.port}"
+            return domain
+        except Exception:
+            return db_url.lower()
+    else:
+        # Nếu không có protocol, coi như là domain luôn
+        return db_url.lower()
 
 
 @app.get("/health")
@@ -60,35 +88,51 @@ def check(url: str = Query(..., description="URL cần kiểm tra")):
     if not url:
         raise HTTPException(400, detail="Missing url")
     began = time.time()
-    norm = normalize(url)
+    
+    # Extract domain từ input URL
+    input_domain = extract_domain(url)
 
-    col = mongo_client[DB_NAME][COLLECTION]
-
-    # Khớp DB: các mục được lưu có thể có tiền tố http(s)://
-    patterns = [
-        {"URL": {"$regex": f"^https?://{norm.rstrip('/')}/?$", "$options": "i"}},
-        {"URL": {"$regex": f"^{norm.rstrip('/')}$", "$options": "i"}},
+    # Kiểm tra trong blacklist collection - sử dụng regex để match domain
+    blacklist_col = mongo_client[DB_NAME][BLACKLIST_COLLECTION]
+    blacklist_patterns = [
+        # Match exact domain
+        {"url": input_domain},
+        # Match domain với protocol (bắt đầu với https?://domain)
+        {"url": {"$regex": f"^https?://{input_domain.replace('.', r'\.')}(/.*)?$", "$options": "i"}},
     ]
-    db_doc = col.find_one({"$or": patterns}, {"_id": 1, "label": 1})
-    phishing_db = db_doc is not None
-    label = db_doc.get('label') if db_doc and 'label' in db_doc else None
+    blacklist_doc = blacklist_col.find_one({"$or": blacklist_patterns}, {"_id": 1})
+    in_blacklist = blacklist_doc is not None
 
-    # Giải thích: label = 1 => hợp pháp (không phải phishing), label = 0 => phishing
-    if label is not None:
-        phishing = (label == 0)
-        source = "db-label"
+    # Kiểm tra trong whitelist collection - sử dụng regex để match domain
+    whitelist_col = mongo_client[DB_NAME][WHITELIST_COLLECTION]
+    whitelist_patterns = [
+        # Match exact domain  
+        {"url": input_domain},
+        # Match domain với protocol (bắt đầu với https?://domain)
+        {"url": {"$regex": f"^https?://{input_domain.replace('.', r'\.')}(/.*)?$", "$options": "i"}},
+    ]
+    whitelist_doc = whitelist_col.find_one({"$or": whitelist_patterns}, {"_id": 1})
+    in_whitelist = whitelist_doc is not None
+
+    # Xác định kết quả và nguồn
+    if in_blacklist:
+        result = "phishing"
+        source = "blacklist"
+    elif in_whitelist:
+        result = "safe"
+        source = "whitelist"
     else:
-        phishing = phishing_db  
-        source = "db" if phishing_db else "none"
+        result = "unknown"
+        source = "none"
 
     elapsed_ms = (time.time() - began) * 1000.0
 
     return CheckResponse(
         url=url,
-        normalized=norm,
-        phishing_db=phishing_db,
-        label=label,
-        phishing=phishing,
+        normalized=input_domain,  # Trả về domain đã extract
+        in_blacklist=in_blacklist,
+        in_whitelist=in_whitelist,
+        result=result,
         source=source,
         elapsed_ms=elapsed_ms
     )

@@ -1,0 +1,102 @@
+### Test Phishing Detection API - Exact Match Only
+### Base URL: http://localhost:5000
+
+### 1. Health Check
+GET http://localhost:5000/health
+
+###
+
+### 2. Test với URL có thể có trong blacklist (exact match)
+GET http://localhost:5000/check?url=https://hometrade-nomura.scd6753.com/?login=kjCYN9GksdMRCAHMVaxn0j2W
+
+###
+
+### 3. Test với URL có thể có trong blacklist (không có query)
+GET http://localhost:5000/check?url=https://hometrade-nomura.scd6753.com
+
+###
+
+### 4. Test với URL có thể có trong whitelist
+GET http://localhost:5000/check?url=https://google.com
+
+###
+
+### 5. Test với URL có thể có trong whitelist (không có protocol)
+GET http://localhost:5000/check?url=google.com
+
+###
+
+### 6. Test với Facebook (có thể trong whitelist)
+GET http://localhost:5000/check?url=https://facebook.com
+
+###
+
+### 7. Test với Facebook (không có protocol)
+GET http://localhost:5000/check?url=facebook.com
+
+###
+
+### 8. Test với URL không có trong database
+GET http://localhost:5000/check?url=https://unknown-domain-example.com
+
+###
+
+### 9. Test với URL có path phức tạp
+GET http://localhost:5000/check?url=https://example.com/login/page?token=abc123
+
+###
+
+### 10. Test với subdomain
+GET http://localhost:5000/check?url=https://mail.google.com
+
+###
+
+### 11. Test với URL có port
+GET http://localhost:5000/check?url=https://example.com:8080
+
+###
+
+### 12. Test với IP address
+GET http://localhost:5000/check?url=http://192.168.1.1
+
+###
+
+### 13. Test case sensitivity (chữ hoa)
+GET http://localhost:5000/check?url=HTTPS://GOOGLE.COM
+
+###
+
+### 14. Test với trailing slash
+GET http://localhost:5000/check?url=https://google.com/
+
+###
+
+### 15. Test với www subdomain
+GET http://localhost:5000/check?url=https://www.google.com
+
+###
+
+### 16. Test với URL có dấu cách (URL encoding)
+GET http://localhost:5000/check?url=https://example.com/path with space
+
+###
+
+### 17. Test với URL rỗng
+GET http://localhost:5000/check?url=
+
+###
+
+### 18. Test với domain Việt Nam
+GET http://localhost:5000/check?url=https://vnexpress.net
+
+###
+
+### 19. Test với URL có ký tự đặc biệt
+GET http://localhost:5000/check?url=https://test.com/page?param=value&other=123
+
+###
+
+### 20. Test với URL phishing thông thường
+GET http://localhost:5000/check?url=https://secure-login-bank.com/verify-account
+
+###
