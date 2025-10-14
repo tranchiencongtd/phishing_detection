@@ -16,7 +16,7 @@ phishing_detection/
 - **MongoDB Database**: Lưu trữ danh sách URL phishing đã biết
 
 ## Yêu cầu hệ thống
-- Python 3.8+
+- Python 3.13.2
 - MongoDB đang chạy tại `mongodb://localhost:27017`
 - Chrome/Edge browser để cài extension
 
